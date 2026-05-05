@@ -1,37 +1,63 @@
--- Wait for game to load
-if not game:IsLoaded() then game.Loaded:Wait() end
+-- Xeno Optimized Script
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- Fetch Rayfield UI
-local success, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
+local Window = OrionLib:MakeWindow({Name = "Xeno Hub", HidePremium = false, SaveConfig = false, IntroText = "Xeno Loading..."})
 
-if not success or not Rayfield then
-    warn("Rayfield failed to load! The UI library might be down.")
-    return
-end
-
-local Window = Rayfield:CreateWindow({
-   Name = "Xeno Hub",
-   LoadingTitle = "Loading...",
-   LoadingSubtitle = "by bigipalonen",
-   ConfigurationSaving = { Enabled = false }
+-- Main Tab
+local MainTab = Window:MakeTab({
+	Name = "Main",
+	Icon = "rbxassetid://4483362458",
+	PremiumOnly = false
 })
 
-local Tab = Window:CreateTab("Main", 4483362458)
-
-Tab:CreateButton({
-   Name = "Speed Boost",
-   Callback = function()
-       game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 100
-   end,
+MainTab:AddSlider({
+	Name = "Walkspeed",
+	Min = 16,
+	Max = 300,
+	Default = 16,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "Speed",
+	Callback = function(Value)
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+	end    
 })
 
-Tab:CreateButton({
-   Name = "High Jump",
-   Callback = function()
-       game.Players.LocalPlayer.Character.Humanoid.JumpPower = 150
-   end,
+MainTab:AddSlider({
+	Name = "JumpPower",
+	Min = 50,
+	Max = 500,
+	Default = 50,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "Power",
+	Callback = function(Value)
+		game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+	end    
 })
 
-Rayfield:Notify({Title = "Loaded!", Content = "Script is ready."})
+-- Bypass Tab
+local BypassTab = Window:MakeTab({
+	Name = "Bypasses",
+	Icon = "rbxassetid://4483362458",
+	PremiumOnly = false
+})
+
+BypassTab:AddButton({
+	Name = "Enable Anti-Reset (Metatable)",
+	Callback = function()
+        local gmt = getrawmetatable(game)
+        setreadonly(gmt, false)
+        local old = gmt.__newindex
+        gmt.__newindex = newcclosure(function(t, k, v)
+            if not checkcaller() and t:IsA("Humanoid") and (k == "WalkSpeed" or k == "JumpPower") then
+                return nil
+            end
+            return old(t, k, v)
+        end)
+        setreadonly(gmt, true)
+        OrionLib:MakeNotification({Name = "Success", Content = "Bypass Active", Time = 5})
+  	end    
+})
+
+OrionLib:Init()
